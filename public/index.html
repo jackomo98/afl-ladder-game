@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFL Ladder Tipping</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        table { width: 80%; margin: auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 10px; text-align: center; }
+        button { padding: 10px; margin-top: 10px; cursor: pointer; }
+        input { width: 50px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>AFL 2025 Ladder Tipping Game</h1>
+
+    <!-- Ladder Prediction Submission -->
+    <h2>Submit Your Ladder Prediction</h2>
+    <input type="text" id="playerName" placeholder="Enter your name">
+    <table>
+        <thead>
+            <tr><th>Team</th><th>Predicted Position</th></tr>
+        </thead>
+        <tbody id="ladderBody"></tbody>
+    </table>
+    <button onclick="submitLadder()">Submit Prediction</button>
+
+    <!-- Leaderboard -->
+    <h2>Leaderboard</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score (Lower is Better)</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard"></tbody>
+    </table>
+
+    <!-- Live AFL Ladder -->
+    <h2>Live AFL Ladder</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Team</th>
+                <th>Wins</th>
+                <th>Losses</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody id="liveLadder"></tbody>
+    </table>
+
+    <script>
+        const teams = [
+            "Adelaide", "Brisbane", "Carlton", "Collingwood", "Essendon",
+            "Fremantle", "Geelong", "Gold Coast", "GWS", "Hawthorn",
+            "Melbourne", "North Melbourne", "Port Adelaide", "Richmond",
+            "St Kilda", "Sydney", "West Coast", "Western Bulldogs"
+        ];
+
+        const ladderBody = document.getElementById("ladderBody");
+
+        // Create input fields for predictions
+        teams.forEach(team => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${team}</td>
+                <td><input type="number" name="${team}" min="1" max="18" required></td>
+            `;
+            ladderBody.appendChild(row);
+        });
+
+        // Function to submit ladder prediction
+        function submitLadder() {
+            const playerName = document.getElementById("playerName").value.trim();
+            if (!playerName) {
+                alert("Please enter your name.");
+                return;
+            }
+
+            const prediction = [];
+            document.querySelectorAll("#ladderBody input").forEach(input => {
+                prediction.push(parseInt(input.value, 10));
+            });
+
+            fetch('/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: playerName, prediction })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Error:", error));
+        }
+
+        // Function to load leaderboard
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/leaderboard');
+                const data = await response.json();
+                const tbody = document.getElementById('leaderboard');
+                tbody.innerHTML = '';
+
+                data.forEach((player, index) => {
+                    tbody.innerHTML += `<tr>
+                        <td>${index + 1}</td>
+                        <td>${player.name}</td>
+                        <td>${player.points}</td>
+                    </tr>`;
+                });
+            } catch (error) {
+                console.error("Error loading leaderboard:", error);
+            }
+        }
+
+        // Function to load live AFL ladder
+        async function loadLiveLadder() {
+            try {
+                const response = await fetch('/live-ladder');
+                const ladder = await response.json();
+                const tbody = document.getElementById('liveLadder');
+                tbody.innerHTML = ''; // Clear previous data
+
+                ladder.forEach(team => {
+                    tbody.innerHTML += `<tr>
+                        <td>${team.rank}</td>
+                        <td>${team.name}</td>
+                        <td>${team.wins}</td>
+                        <td>${team.losses}</td>
+                        <td>${team.percentage.toFixed(2)}%</td>
+                    </tr>`;
+                });
+            } catch (error) {
+                console.error("Error loading live ladder:", error);
+            }
+        }
+
+        // Refresh leaderboard and ladder every 60 seconds
+        setInterval(loadLeaderboard, 60000);
+        setInterval(loadLiveLadder, 60000);
+
+        loadLeaderboard();
+        loadLiveLadder();
+    </script>
+
+</body>
+</html>
