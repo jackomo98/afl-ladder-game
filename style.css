@@ -1,0 +1,40 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #ff5733;
+}
+
+nav a {
+    margin: 10px;
+    text-decoration: none;
+    color: blue;
+    font-weight: bold;
+}
+
+#afl-next-round {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+#afl-next-round h2 {
+    color: #333;
+}
+
+#fixture-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#fixture-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
